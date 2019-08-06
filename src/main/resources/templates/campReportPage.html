@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>营服报表-分页</title>
+    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap-table.min.css" />
+    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap-datetimepicker.min.css"/>
+
+    <script src="../static/js/jquery.js" ></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script src="../static/js/bootstrap-table.min.js" ></script>
+    <script src="../static/js/bootstrap-table-zh-CN.min.js" ></script>
+    <script src="../static/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="../static/js/bootstrap-datetimepicker.zh-CN.js"></script>
+
+</head>
+<body>
+<div class="panel panel-default">
+    <div class="panel-body form-group" style="margin-bottom:0px;white-space:nowrap">
+        <label class="col-md-1 control-label" style="text-align: right; margin-top:5px">开始日期：</label>
+        <div  class="form_datetime input-group date" style="width: 150px;float: left"    data-date-format="yyyy-mm-dd">
+            <input class="form-control input-box" id="begin_time" type="text" value="" readonly>
+            <label class="input-group-addon" ><i class="glyphicon glyphicon-th"></i></label></input>
+        </div>
+        <label class="col-md-1 control-label" style="text-align: right; margin-top:5px">结束日期：</label>
+        <div  class="form_datetime input-group date" style="width: 150px;float: left"    data-date-format="yyyy-mm-dd">
+            <input class="form-control input-box" id="end_time" type="text" value="" readonly>
+            <label class="input-group-addon" ><i class="glyphicon glyphicon-th"></i></label></input>
+        </div>
+
+        <label class="col-md-1 control-label" style="text-align: right; margin-top:5px">场景名称：</label>
+        <div style="width:150px;float: left">
+            <input type="text" class="form-control" id="mkt_campaign_name"/>
+        </div>
+        <label class="col-md-1 control-label" style="text-align: right; margin-top:5px">短信名称：</label>
+        <div style="width:150px;float: left">
+            <input type="text" class="form-control" id="script_name"/>
+        </div>
+
+        <div class="col-md-1">
+            <button class="btn btn-default"  id="search_btn">查询</button>
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-default" style="color: #fff3f3">
+                <a onclick="location.href='/report-home/report/exportToExcel?begin_time='+
+                document.getElementById('begin_time').value+'&end_time='+
+                document.getElementById('end_time').value+'&mkt_campaign_name'+
+                document.getElementById('mkt_campaign_name').value+'&script_name'+
+                document.getElementById('script_name').value">下载</a>
+            </button>
+        </div>
+    </div>
+</div>
+
+<table id="mytab" class="table table-hover"></table>
+
+<script>
+
+    //时间控件
+    $('.form_datetime').datetimepicker({
+        language:  'zh-CN',
+        weekStart: 1,
+        todayBtn:  1,
+        autoclose: 1,
+        minView: "month",
+        format: 'yyyymmdd',
+        todayHighlight: 1,
+        startView: 2,
+        forceParse: 0,
+        showMeridian: 1
+    });
+
+    $('#mytab').bootstrapTable({
+        method : 'get',
+        url : "",
+        striped : true,
+        pageNumber : 1,
+        pagination : true,
+        sidePagination : 'client',
+        pageSize : 10,
+        pageList : [ 5, 10, 20, 30 ],
+        showRefresh : false,
+        queryParams : function(params) {//上传服务器的参数
+            var temp = {
+                begin_time : $('#begin_time').val(),
+                end_time: $('#end_time').val(),
+                mkt_campaign_name : $('#mkt_campaign_name').val(),
+                script_name : $('#script_name').val()
+            };
+            return temp;
+        },
+        columns : [ {
+            title : '账期',
+            field : 'gateway_cycle',
+            sortable : true
+        }, {
+            title : '服务场景ID',
+            field : 'mkt_campaign_id',
+            sortable : true
+        }, {
+            title : '服务场景名称',
+            field : 'mkt_campaign_name'
+        },  {
+            title : '短信模板ID',
+            field : 'content_tpl_id'
+        }, {
+            title : '短信模板名称',
+            field : 'script_name'
+        }, {
+            title : '事件编码',
+            field : 'event_code'
+        }, {
+            title : '发送短信数',
+            field : 'send_sms_total'
+        },  {
+            title : '提交网关数',
+            field : 'gateway_succ_commit'
+        }, {
+            title : '发送成功数',
+            field : 'success_send'
+        }, {
+            title : '触达率',
+            field : 'success_send_ratio'
+        } ]
+    })
+
+    //查询按钮事件
+    $('#search_btn').click(function() {
+        $('#mytab').bootstrapTable('refresh', {
+            url : '/report-home/report/getCampDataList'
+        });
+
+    })
+
+
+</script>
+
+</body>
+</html>

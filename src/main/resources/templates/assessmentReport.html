@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>后评估报表</title>
+
+    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap.css" />
+
+    <script type="text/javascript" src="../static/js/jquery.js"></script>
+    <script type="text/javascript" src="../static/js/echarts.js"></script>
+</head>
+<body>
+    <!-- 首栏输入框 -->
+    <div class="row" style="background-color:	#E0FFFF">
+            <div class="col-md-2">
+                <span>地区</span>
+                <select id="area_name" class="form-control">
+                    <option selected="selected" value="">全部</option>
+                    <option>北京</option>
+                    <option>海淀北电信局</option>
+                    <option>南区电信局</option>
+                    <option>北区电信局</option>
+                    <option>东区电信局</option>
+                    <option>西区电信局</option>
+                    <option>大兴电信局</option>
+                    <option>顺义电信局</option>
+                    <option>平谷电信局</option>
+                    <option>密云电信局</option>
+                    <option>怀柔电信局</option>
+                    <option>通州郊区（县）电信局</option>
+                    <option>延庆电信局</option>
+                    <option>昌平电信局</option>
+                    <option>房山电信局</option>
+                    <option>门头沟电信局</option>
+                    <option>企业信息化部</option>
+                    <option>市场部</option>
+                    <option>客户服务部（号百运营中心）</option>
+                    <option>系统集成部</option>
+                    <option>服务质量监督部</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <span>开始</span>
+                <input type="text" class="form-control" id="begin_time" placeholder="请输入开始时间">
+            </div>
+            <div class="col-md-2" style="float: left">
+                <span>结束</span>
+                <input type="text" class="form-control" id="end_time" placeholder="请输入结束时间">
+            </div>
+            <div class="col-md-2" style="float: left">
+                <span>活动名称</span>
+                <input type="text" class="form-control" id="mkt_campaign_name">
+            </div>
+            <div class="col-md-1" style="float: left">
+                <span>渠道</span>
+                <select id="channel_name" class="form-control">
+                <option selected="selected" value="">全部</option>
+                <option>厅台</option>
+                <option>外呼</option>
+                <option>短信</option>
+                <option>直销渠道</option>
+                <option>客服来电</option>
+                <option>短厅</option>
+                <option>线上渠道</option>
+                <option>装维渠道</option>
+            </select>
+            </div>
+        <div class="col-md-1"><span><br></span>
+            <button class="btn btn-default" onclick="getDataList()" >查询</button>
+            </div>
+    </div>
+
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="width: 100%;height:300px;text-align: center;margin: 0 auto;background-color:	#F0FFFF"></div>
+
+    <!-- 数据表格 -->
+    <div id="showTable" style="background-color:	#E0FFFF"></div>
+
+<script type="text/javascript">
+
+    var myChart = echarts.init(document.getElementById("main"));;
+    var option;
+    var showTableHtml;
+
+    var xdata=[]; var ydata1=[]; var ydata2=[]; var ydata3=[];
+    var ydata4=[]; var ydata5=[]; var ydata6=[]; var ydata7=[];
+    /*var ydata8=[]; var ydata9=[]; var ydata10=[]; var ydata11=[];
+    var ydata12=[]; var ydata13=[];*/
+
+
+    $(function () {
+        initChart();
+        myChart.setOption(option);//显示初始图表
+        initTable();
+        $("#showTable").html(showTableHtml);//显示初始数据表格
+    });
+
+    function getDataList() {
+        var area_name = document.getElementById("area_name").value;
+        var begin_time = document.getElementById("begin_time").value;
+        var end_time = document.getElementById("end_time").value;
+        var mkt_campaign_name = document.getElementById("mkt_campaign_name").value;
+        var channel_name = document.getElementById("channel_name").value;
+
+        $.ajax({
+            type:"POST",
+            url:"http://localhost:9199/report-home/assessment/getDataList",
+            dataType:"json",
+            data:{
+                "area_name":area_name,
+                "begin_time":begin_time,
+                "end_time":end_time,
+                "mkt_campaign_name":mkt_campaign_name,
+                "channel_name":channel_name
+            },
+            async:true,
+            success:function (result) {
+                initChart();//为了清除历史数据
+                initTable();//同上
+                var dataList = result.data;
+                var num = dataList.length;
+                var target;
+                for (var i = 0; i < num; i++) {
+                    target = dataList[i];
+                    xdata.push(target.data_time);
+                    ydata1.push(target.obj_user_cnt);
+                    ydata2.push(target.day_touch_user_cnt);
+                    ydata3.push(target.month_touch_user_cnt);
+                    ydata4.push(target.total_touch_user_cnt);
+                    ydata5.push(target.day_success_user_cnt);
+                    ydata6.push(target.month_success_user_cnt);
+                    ydata7.push(target.total_success_user_cnt);
+                    /*ydata8.push(target.day_cover_ratio);
+                    ydata9.push(target.month_cover_ratio);
+                    ydata10.push(target.total_cover_ratio);
+                    ydata11.push(target.day_success_ratio);
+                    ydata12.push(target.month_success_ratio);
+                    ydata13.push(target.total_success_ratio);*/
+
+                    showTableHtml += "<tr><td>" + target.data_time + "</td><td>"
+                        + target.obj_user_cnt + "</td><td>"
+                        + target.day_touch_user_cnt + "</td><td>"
+                        + target.month_touch_user_cnt + "</td><td>"
+                        + target.total_touch_user_cnt + "</td><td>"
+                        + target.day_success_user_cnt + "</td><td>"
+                        + target.month_success_user_cnt + "</td><td>"
+                        + target.total_success_user_cnt + "</td><td>"
+                        + target.day_cover_ratio + "%</td><td>"
+                        + target.month_cover_ratio + "%</td><td>"
+                        + target.total_cover_ratio + "%</td><td>"
+                        + target.day_success_ratio + "%</td><td>"
+                        + target.month_success_ratio + "%</td><td>"
+                        + target.total_success_ratio + "%</td></tr>";
+                }
+                myChart.setOption(option);//加载echarts图表
+
+                showTableHtml += "</tbody></table>";
+                $("#showTable").html(showTableHtml);//加载数据表格
+            },
+            error:function () {
+                alert("error");
+            }
+        });
+
+    }
+
+    function initChart() {
+        //如果不清空，没查询一次数组都会累加放数据
+        xdata.length=0; ydata1.length=0; ydata2.length=0; ydata3.length=0;
+        ydata4.length=0; ydata5.length=0; ydata6.length=0; ydata7.length=0;
+        /*ydata8.length=0; ydata9.length=0; ydata10.length=0; ydata11.length=0;
+        ydata12.length=0; ydata13.length=0;*/
+
+        option = {
+            title : {
+                text: "后评估报表",//正标题
+                x: "center",//标题水平方向位置
+                y: "bottom",
+                textStype: {//正标题样式
+                    fontSize: 18,
+                    color: '#333'
+                }
+            },
+            tooltip : {
+                trigger: 'axis'
+            },
+            legend: {
+                textStyle: {
+                    color: '#333'
+                },
+                data:['目标用户数',
+                    '当日接触次数','当月接触次数','累计接触次数',
+                    '当日成功用户数','当月成功用户数','累计成功用户数'
+                    /*'当日营销覆盖率','当月营销覆盖率','累计营销覆盖率',
+                    '当日营销成功率','当月营销成功率','累计营销成功率'*/]
+            },
+            toolbox: {
+                show : true,
+                feature : {
+                    mark : {show: true},
+                    dataView : {show: true, readOnly: false},
+                    magicType : {show: true, type: ['line', 'bar']},
+                    restore : {show: true},
+                    saveAsImage : {show: true}
+                }
+            },
+            calculable : true,
+            xAxis : [
+                {
+                    type : 'category',
+                    boundaryGap : false,//
+                    data : xdata,
+                    name : "数据周期"
+                }
+            ],
+            yAxis : [
+                {
+                    type : 'value',
+                    name : '数值'
+                }
+            ],
+            series : [
+                {
+                    name:'目标用户数',
+                    type:'line',
+                    data:ydata1
+                },
+                {
+                    name:'当日接触次数',
+                    type:'line',
+                    data:ydata2
+                },
+                {
+                    name:'当月接触次数',
+                    type:'line',
+                    data:ydata3
+                },
+                {
+                    name:'累计接触次数',
+                    type:'line',
+                    data:ydata4
+                },
+                {
+                    name:'当日成功用户数',
+                    type:'line',
+                    data:ydata5
+                },
+                {
+                    name:'当月成功用户数',
+                    type:'line',
+                    data:ydata6
+                },
+                {
+                    name:'累计成功用户数',
+                    type:'line',
+                    data:ydata7
+                }
+                /*{
+                    name:'当日营销覆盖率',
+                    type:'line',
+                    data:ydata8
+                },
+                {
+                    name:'当月营销覆盖率',
+                    type:'line',
+                    data:ydata9
+                },
+                {
+                    name:'累计营销覆盖率',
+                    type:'line',
+                    data:ydata10
+                },
+                {
+                    name:'当日营销成功率',
+                    type:'line',
+                    data:ydata11
+                },
+                {
+                    name:'当月营销成功率',
+                    type:'line',
+                    data:ydata12
+                },
+                {
+                    name:'累计营销成功率',
+                    type:'line',
+                    data:ydata13
+                }*/
+            ]
+        };
+    }
+
+    function initTable(){
+        showTableHtml = '<table class="table table-hover">';
+        showTableHtml += "<thead>\n" +
+            "            <th>时间</th>\n" +
+            "            <th>目标用户数</th>\n" +
+            "            <th>当日接触次数</th>\n" +
+            "            <th>当月接触次数</th>\n" +
+            "            <th>累计接触次数</th>\n" +
+            "            <th>当日成功用户数</th>\n" +
+            "            <th>累计成功用户数</th>\n" +
+            "            <th>当月成功用户数</th>\n" +
+            "            <th>当日营销覆盖率</th>\n" +
+            "            <th>当月营销覆盖率</th>\n" +
+            "            <th>累计营销覆盖率</th>\n" +
+            "            <th>当日营销成功率</th>\n" +
+            "            <th>当月营销成功率</th>\n" +
+            "            <th>累计营销成功率</th>\n" +
+            "        </thead><tbody>";
+
+    }
+</script>
+</body>
+</html>
