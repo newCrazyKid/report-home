@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.ai.rti.report.mapper.AssessmentMapper">
+	
+	
+	<select id="getData" resultType="java.util.HashMap" parameterType="java.lang.String">
+		select dept_name as name, target_num as value from target_info 
+		where  target_level1_code = #{target_level1_code} 
+		and target_level2_code = #{target_level2_code}
+		and month_id = #{month}
+		and remark =#{iscity}
+        order by dept_name
+     </select>
+     
+     <select id="getDataEvery" resultType="java.util.HashMap" parameterType="java.lang.String">
+		select month_id as name, target_num as value from target_info 
+		where  target_level1_code = #{target_level1_code} 
+		and target_level2_code = #{target_level2_code}
+		and dept_id = #{dept_id}
+		and month_id >= #{month}
+        order by month_id
+     </select>
+     
+     
+     	<!-- <select id="getTargetName" resultType="java.util.HashMap" parameterType="java.lang.String">
+		select  target_level3_name as name from target_info 
+		where  target_level1_code = #{target_level1_code} 
+		and target_level2_code = #{target_level2_code}
+		order by target_level3_code
+     </select> -->
+     
+      <select id="getLinebData" resultType="java.util.HashMap" parameterType="java.lang.String">
+     	 select DISTINCT dept_name ,
+		max(case when target_level3_code ='01' then  target_num end ) as tagOne,
+		max(case when target_level3_code ='02' then  target_num end ) as tagTwo
+		from target_info
+       <where>
+           month_id = #{month} and target_level1_code = #{target_level1_code} 
+		and target_level2_code = #{target_level2_code}  and  remark = #{iscity}
+       </where>
+       GROUP BY dept_name ; 
+     </select>
+     
+     
+      <select id="getLinebDataEvery" resultType="java.util.HashMap" parameterType="java.lang.String">
+     	 select DISTINCT month_id as  dept_name,
+		max(case when target_level3_code ='01' then  target_num end ) as tagOne,
+		max(case when target_level3_code ='02' then  target_num end ) as tagTwo
+		from target_info
+       <where>
+           dept_id = #{dept_id} and target_level1_code = #{target_level1_code} 
+		and target_level2_code = #{target_level2_code} 
+		and  month_id >= #{month}
+       </where>
+       GROUP BY month_id ; 
+     </select>
+     
+     
+      <select id="getRepmktSum" resultType="java.util.HashMap" parameterType="java.lang.String">
+			SELECT MKT_CAMPAIGN_ID,MKT_CAMPAIGN_NAME,BEGIN_TIME,
+				  OBJ_USR_CNT,TOTAL_TOUCH_USR_CNT, TOTAL_SUCCESS_USR_CNT   
+				FROM
+					rep_mkt_sum
+				<where>
+				   #{data_time} &gt;= BEGIN_time  and #{data_time} &lt;= end_time 
+				and 
+				  DATA_TIME = #{data_time}
+				 </where>
+				group by mkt_campaign_id
+				order by ${collation} desc ,MKT_CAMPAIGN_ID desc
+				limit 5
+     </select> 
+     
+      <select id="getChannelSca" resultType="java.util.HashMap" parameterType="java.lang.String">
+					SELECT
+						b.channel_name as name,
+				<if test="collation == 'OBJ_USR_CNT' ">
+					'0' as value
+				</if>
+				<if test="collation == 'TOTAL_TOUCH_USR_CNT' ">
+					a.TOUCH_USR_CNT  as value
+				</if>
+				<if test="collation == 'TOTAL_SUCCESS_USR_CNT' ">
+					a.SUCS_ORDER_USR_CNT  as value
+				</if>
+					FROM
+						rep_order_sum a
+					LEFT JOIN exec_channel b ON a.CHANNEL_ID = b.CHANNEL_ID
+					<where>
+					 a.MKT_CAMPAIGN_ID =#{mkt_campaign_id}
+					and  #{data_time} &gt;= BEGIN_time  and #{data_time} &lt;= end_time 
+					and  a.DATA_TIME = #{data_time}
+					</where>
+					GROUP BY
+						a.MKT_CAMPAIGN_ID
+     </select> 
+     
+      <select id="getSumMkt" resultType="java.util.HashMap" parameterType="java.lang.String">
+			select 
+      		count(DISTINCT mkt_campaign_id) as mkt_cnt,
+			IFNULL(sum(total_order_usr_cnt),0) as order_usr_cnt,
+			IFNULL(sum(total_touch_usr_cnt),0) as touch_usr_cnt,
+			IFNULL(sum(total_success_usr_cnt),0) as success_usr_cnt
+    		from rep_mkt_sum
+    		<where>
+   				 #{data_time} &lt;= end_time and #{data_time}  &gt;= begin_time
+   			</where>
+     </select>
+     
+</mapper>

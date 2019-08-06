@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="com.ai.rti.report.mapper.ReportMapper">
+	
+	<select id="getCampDataList" resultType="com.ai.rti.report.entity.CampTable">
+		SELECT
+		gi.gateway_cycle gateway_cycle,
+		a.MKT_CAMPAIGN_ID mkt_campaign_id,
+		a.mkt_campaign_name mkt_campaign_name,
+		h.CONTENT_TPL_ID content_tpl_id,
+		m.script_name script_name,
+		me.event_code event_code,
+		IFNULL(gi.send_sms_total,0) send_sms_total,
+		IFNULL(gi.gateway_succ_commit,0) gateway_succ_commit,
+		IFNULL(gi.success_send,0) success_send,
+		CONCAT(IF(ROUND(IFNULL(gi.success_send,0)/IFNULL(gi.gateway_succ_commit,0)*100,2)=100,100,ROUND(IFNULL(gi.success_send,0)/IFNULL(gi.gateway_succ_commit,0)*100,2)),'%')
+		success_send_ratio
+		FROM mkt_campaign a
+		LEFT JOIN strategy_comp_inst g ON a.mkt_campaign_id = g.activity_id
+		LEFT JOIN strategy_comp_recom_info h ON g.comp_inst_id = h.comp_inst_id
+		INNER JOIN g_itm_remind_send_d gi ON gi.act_id=h.CONTENT_TPL_ID
+		INNER JOIN mkt_script m ON m.CONTENT_TPL_ID = h.CONTENT_TPL_ID
+		INNER JOIN MKT_CAM_EVT_REL me ON a.mkt_campaign_id=me.mkt_campaign_id
+		<where>
+			a.status_cd = 1000 AND m.CONTENT_TPL_STATUS=1 AND m.STATUS_CD=1000 AND a.mkt_campaign_type = 5000
+			<if test="begin_time!=null"> and gi.gateway_cycle &gt;= #{begin_time}</if>
+			<if test="end_time!=null">and gi.gateway_cycle &lt;= #{end_time}</if>
+			<if test="mkt_campaign_name!=null">and a.mkt_campaign_name=#{mkt_campaign_name}</if>
+			<if test="script_name!=null">and m.script_name=#{script_name}</if>
+		</where>
+	</select>
+	
+	
+     
+</mapper>

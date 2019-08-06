@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: report-home
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://10.62.60.33:8913/RTI_AIRMDP
+#    username: umobile
+#    password: Umobile@123
+    url: jdbc:mysql://10.62.49.70:8913/aimdp
+    username: msc_app
+    password: msc_app@9102
+    
+  session:
+    store-type: none
+server:
+  context-path: /report-home
+  port: 9199
+management:
+  security:
+    enabled: false
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+rti:
+  priv:
+    exception: false
+mybatis:
+  mapper-locations: mapper/mysql/*.xml
+  type-aliases-package: com.ai.rti.report.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  file: ../logs/report-svc.log 
+  pattern:
+    file: "%date{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level [%C{1}:%L] - %msg%n"
+  level:
+    com:
+       ai:
+        rti:
+          report:
+             mapper:debug
+              

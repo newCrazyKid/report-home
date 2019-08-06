@@ -1,0 +1,11 @@
+spring:
+ application:
+  name: report-home   #服务名称
+ cloud:
+  config:
+   uri: "http://10.62.228.15:8888" # 配置服务器地址
+   fail-fast: true
+
+mybatis:
+ mapper-locations: mapper/mysql/*.xml
+ type-aliases-package: com.ai.rti.report.entity
